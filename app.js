@@ -6,6 +6,19 @@ const bodyParser = require("body-parser");
 const productRoutes = require("./api/routes/products");
 const orderRoutes = require("./api/routes/orders");
 
+app.use((request, response, next) => {
+  response.header("Access-Control-Allow-Origin", "*");
+  response.header("Access-Control-Allow-Headers", "*");
+  if (request.method === "OPTIONS") {
+    response.header(
+      "Access-Control-Allow-Methods",
+      "PUT, POST, PATCH, DELETE, GET"
+    );
+    return response.status(200).json();
+  }
+  next();
+});
+
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
