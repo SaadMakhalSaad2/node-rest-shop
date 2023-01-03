@@ -2,9 +2,18 @@ const express = require("express");
 const app = express();
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
-
 const productRoutes = require("./api/routes/products");
 const orderRoutes = require("./api/routes/orders");
+const mongoose = require("mongoose");
+
+mongoose
+  .connect(
+    "mongodb+srv://saadmankarious:" +
+      process.env.MONGO_ATLAS_PASSWORD +
+      "@cluster0.6m9yjr7.mongodb.net/?retryWrites=true&w=majority"
+  )
+  .then(() => console.log("connected to db"))
+  .catch((error) => console.log("connection failed: " + error));
 
 app.use((request, response, next) => {
   response.header("Access-Control-Allow-Origin", "*");
@@ -23,11 +32,9 @@ app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-//routes for handling different requests
 app.use("/products", productRoutes);
 app.use("/orders", orderRoutes);
 
-//reaching this point means none of the above midlewares was requested
 app.use((request, response, next) => {
   const error = new Error("Not Found");
   error.status = 404;
