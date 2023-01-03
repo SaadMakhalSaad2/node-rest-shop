@@ -1,19 +1,28 @@
 const express = require("express");
-const { response } = require("../../app");
 const router = express.Router();
 const Product = require("../models/product");
 const mongoose = require("mongoose");
-const { update } = require("../models/product");
 
 router.get("/", (request, response, next) => {
   Product.find()
+    .select("name price _id")
     .exec()
     .then((docs) => {
-      console.log(docs);
-      response.status(200).json({
-        message: "success",
-        products: docs,
-      });
+      const res = {
+        count: docs.length,
+        products: docs.map((doc) => {
+          return {
+            name: doc.name,
+            price: doc.price,
+            _id: doc._id,
+            request: {
+              type: "GET",
+              url: "http://localhost:3000/products/" + doc._id,
+            },
+          };
+        }),
+      };
+      response.status(200).json(res);
     })
     .catch((error) => {
       console.log(error);
@@ -37,7 +46,15 @@ router.post("/", (request, response, next) => {
       console.log("saved: " + result);
       response.status(201).json({
         message: "success",
-        createdProduct: result,
+        createdProduct: {
+          name: result.name,
+          _id: result.name,
+          price: result.price,
+          request: {
+            type: "GET",
+            url: "http://localhost:3000/products/" + result._id,
+          },
+        },
       });
     })
     .catch((error) => {
@@ -51,9 +68,17 @@ router.post("/", (request, response, next) => {
 router.get("/:productId", (request, response, next) => {
   const id = request.params.productId;
   Product.findById(id)
+    .select("name price _id")
     .exec()
     .then((doc) => {
-      response.status(200).json(doc);
+      response.status(200).json({
+        product: doc,
+        request: {
+          type: "GET",
+          description: "Get all products",
+          url: "http://localhost:3000/products",
+        },
+      });
     })
     .catch((error) => {
       response.status(500).json({
@@ -80,7 +105,13 @@ router.patch("/:productId", (request, response, next) => {
     .exec()
     .then((res) => {
       console.log(res);
-      response.status(200).json(res);
+      response.status(200).json({
+        message: "success",
+        request: {
+          type: "GET",
+          url: "http://localhost:3000/products/" + id,
+        },
+      });
     })
     .catch((error) => {
       console.log(error);
@@ -93,7 +124,14 @@ router.delete("/:productId", (request, response, next) => {
   Product.remove({ _id: id })
     .exec()
     .then((res) => {
-      response.status(200).json(res);
+      response.status(200).json({
+        message: "success",
+        request: {
+          type: "POST",
+          url: "http://localhost:3000/products",
+          body: { name: "String", price: "Number" },
+        },
+      });
     })
     .catch((error) => {
       response.status(500).json({ error: error });
