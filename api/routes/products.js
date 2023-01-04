@@ -2,10 +2,27 @@ const express = require("express");
 const router = express.Router();
 const Product = require("../models/product");
 const mongoose = require("mongoose");
+const multer = require("multer");
+
+const storageSettings = multer.diskStorage({
+  destination: function (request, file, callback) {
+    callback(null, "uploads/products");
+  },
+  filename: function (request, file, callback) {
+    callback(null, Date.now() + "_" + file.originalname);
+  },
+});
+
+const upload = multer({
+  storage: storageSettings,
+  limits: {
+    fileSize: 1024 * 1024 * 5,
+  },
+});
 
 router.get("/", (request, response, next) => {
   Product.find()
-    .select("name price _id")
+    .select("name price _id productImage")
     .exec()
     .then((docs) => {
       const res = {
@@ -15,6 +32,10 @@ router.get("/", (request, response, next) => {
             name: doc.name,
             price: doc.price,
             _id: doc._id,
+            productImage: {
+              type: "GET",
+              url: process.env.HOST + "products/uploads" + doc.imagePath,
+            },
             request: {
               type: "GET",
               url: "http://localhost:3000/products/" + doc._id,
@@ -33,11 +54,29 @@ router.get("/", (request, response, next) => {
     });
 });
 
-router.post("/", (request, response, next) => {
+router.get("/uploads/:imagePath", (request, response, next) => {
+  console.log("requested file path: " + request.params.imagePath);
+  var options = {
+    root: "./uploads/products",
+  };
+
+  var fileName = request.params.imagePath;
+  response.sendFile(fileName, options, function (err) {
+    if (err) {
+      next(err);
+    } else {
+      console.log("Sent:", fileName);
+    }
+  });
+});
+
+router.post("/", upload.single("productImage"), (request, response, next) => {
+  console.log(request.file);
   const product = new Product({
     _id: new mongoose.Types.ObjectId(),
     name: request.body.name,
     price: request.body.price,
+    productImage: request.file.filename,
   });
 
   product
@@ -48,7 +87,7 @@ router.post("/", (request, response, next) => {
         message: "success",
         createdProduct: {
           name: result.name,
-          _id: result.name,
+          _id: result._id,
           price: result.price,
           request: {
             type: "GET",
@@ -68,11 +107,15 @@ router.post("/", (request, response, next) => {
 router.get("/:productId", (request, response, next) => {
   const id = request.params.productId;
   Product.findById(id)
-    .select("name price _id")
+    .select("name price _id productImage")
     .exec()
     .then((doc) => {
       response.status(200).json({
         product: doc,
+        productImage: {
+          type: "GET",
+          url: process.env.HOST + "products/uploads/" + doc.productImage,
+        },
         request: {
           type: "GET",
           description: "Get all products",

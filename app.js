@@ -31,6 +31,7 @@ app.use((request, response, next) => {
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+//app.use('/uploads',express.static("uploads"));
 
 app.use("/products", productRoutes);
 app.use("/orders", orderRoutes);

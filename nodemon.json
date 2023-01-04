@@ -1,5 +1,6 @@
 {
     "env":{
-        "MONGO_ATLAS_PASSWORD": "7GSY8I4JEwYmWHBf"
+        "MONGO_ATLAS_PASSWORD": "7GSY8I4JEwYmWHBf",
+        "HOST": "http://localhost:3000/"
     }
 }
