@@ -4,6 +4,7 @@ const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const productRoutes = require("./api/routes/products");
 const orderRoutes = require("./api/routes/orders");
+const userRoutes = require("./api/routes/Users");
 const mongoose = require("mongoose");
 
 mongoose
@@ -14,6 +15,7 @@ mongoose
   )
   .then(() => console.log("connected to db"))
   .catch((error) => console.log("connection failed: " + error));
+mongoose.set("strictQuery", true);
 
 app.use((request, response, next) => {
   response.header("Access-Control-Allow-Origin", "*");
@@ -35,9 +37,10 @@ app.use(bodyParser.json());
 
 app.use("/products", productRoutes);
 app.use("/orders", orderRoutes);
+app.use("/users", userRoutes);
 
 app.use((request, response, next) => {
-  const error = new Error("Not Found");
+  const error = new Error("Requested url does not match an endpoint");
   error.status = 404;
   next(error);
 });
