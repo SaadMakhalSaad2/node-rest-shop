@@ -3,8 +3,6 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
-const user = require("../models/user");
-const { response } = require("express");
 const jwt = require("jsonwebtoken");
 
 router.post("/signup", (req, res, next) => {
@@ -76,8 +74,9 @@ router.post("/login", (req, res, next) => {
               expiresIn: "1h",
             }
           );
+
           return res.status(200).json({
-            message: "successfully loged in",
+            message: "successfully logedin to the api",
             token: token,
           });
         }

@@ -3,6 +3,7 @@ const router = express.Router();
 const Product = require("../models/product");
 const mongoose = require("mongoose");
 const multer = require("multer");
+const checkAuth = require("../middleware/check-auth");
 
 const storageSettings = multer.diskStorage({
   destination: function (request, file, callback) {
@@ -70,39 +71,44 @@ router.get("/uploads/:imagePath", (request, response, next) => {
   });
 });
 
-router.post("/", upload.single("productImage"), (request, response, next) => {
-  console.log(request.file);
-  const product = new Product({
-    _id: new mongoose.Types.ObjectId(),
-    name: request.body.name,
-    price: request.body.price,
-    productImage: request.file.filename,
-  });
-
-  product
-    .save()
-    .then((result) => {
-      console.log("saved: " + result);
-      response.status(201).json({
-        message: "success",
-        createdProduct: {
-          name: result.name,
-          _id: result._id,
-          price: result.price,
-          request: {
-            type: "GET",
-            url: "http://localhost:3000/products/" + result._id,
-          },
-        },
-      });
-    })
-    .catch((error) => {
-      console.log("error saving: " + error);
-      response.status(500).json({
-        error: error,
-      });
+router.post(
+  "/",
+  checkAuth,
+  upload.single("productImage"),
+  (request, response, next) => {
+    console.log(request.file);
+    const product = new Product({
+      _id: new mongoose.Types.ObjectId(),
+      name: request.body.name,
+      price: request.body.price,
+      productImage: request.file.filename,
     });
-});
+
+    product
+      .save()
+      .then((result) => {
+        console.log("saved: " + result);
+        response.status(201).json({
+          message: "success",
+          createdProduct: {
+            name: result.name,
+            _id: result._id,
+            price: result.price,
+            request: {
+              type: "GET",
+              url: "http://localhost:3000/products/" + result._id,
+            },
+          },
+        });
+      })
+      .catch((error) => {
+        console.log("error saving: " + error);
+        response.status(500).json({
+          error: error,
+        });
+      });
+  }
+);
 
 router.get("/:productId", (request, response, next) => {
   const id = request.params.productId;
@@ -130,7 +136,7 @@ router.get("/:productId", (request, response, next) => {
     });
 });
 
-router.patch("/:productId", (request, response, next) => {
+router.patch("/:productId", checkAuth, (request, response, next) => {
   const id = request.params.productId;
 
   const updateOps = {};
@@ -162,7 +168,7 @@ router.patch("/:productId", (request, response, next) => {
     });
 });
 
-router.delete("/:productId", (request, response, next) => {
+router.delete("/:productId", checkAuth, (request, response, next) => {
   const id = request.params.productId;
   Product.remove({ _id: id })
     .exec()
