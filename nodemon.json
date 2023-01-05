@@ -1,7 +1,7 @@
 {
     "env":{
         "MONGO_ATLAS_PASSWORD": "7GSY8I4JEwYmWHBf",
-        "HOST": "http://localhost:3000/",
+        "HOST": "https://node-rest-shop.vercel.app/",
         "JWT_KEY": "secret"
     }
 }
